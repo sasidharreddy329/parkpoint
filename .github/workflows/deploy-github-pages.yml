@@ -22,6 +22,7 @@ jobs:
       VITE_SUPABASE_URL: https://dugspugwesxiqbcnjpdm.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_6M_XvTqqaCh6gORTYr9AYw_iLcpmtfd
       VITE_ROUTER_MODE: hash
+      VITE_BASE_PATH: /parkpoint/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
