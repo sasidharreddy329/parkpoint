@@ -1,11 +1,38 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import { componentTagger } from "lovable-tagger";
 
-export default defineConfig({
-  plugins: [react()],
-  preview: {
-    host: '0.0.0.0',
-    port: Number(process.env.PORT ?? 4173),
-    allowedHosts: ['parkpoint2.onrender.com']
-  }
-})
+export default defineConfig(({ mode }) => {
+  const base = process.env.VITE_BASE_PATH || "/";
+
+  return {
+    base,
+    server: {
+      host: "::",
+      port: 8080,
+      hmr: {
+        overlay: false,
+      },
+    },
+    preview: {
+      host: "0.0.0.0",
+      port: Number(process.env.PORT ?? 4173),
+      allowedHosts: ["parkpoint2.onrender.com", "parkpoint2-2.onrender.com"],
+    },
+    plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+      dedupe: [
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
+        "react/jsx-dev-runtime",
+        "@tanstack/react-query",
+        "@tanstack/query-core",
+      ],
+    },
+  };
+});
