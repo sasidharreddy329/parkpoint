@@ -17,6 +17,23 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const supabaseConfigError = () =>
+  new Error(
+    "Supabase is not configured correctly. Set valid VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY values in your local .env or deployment environment."
+  );
+
+const normalizeAuthError = (error: any) => {
+  if (!error) return error;
+
+  if (error instanceof TypeError && error.message === "Failed to fetch") {
+    return new Error(
+      "Unable to reach Supabase. Check VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, and your Supabase project status/CORS settings."
+    );
+  }
+
+  return error;
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -87,33 +104,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, role: AppRole) => {
     if (!supabase) {
-      return {
-        error: new Error("Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to use authentication."),
-      };
+      return { error: supabaseConfigError() };
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, role },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, role },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      return { error: normalizeAuthError(error) };
+    } catch (error) {
+      return { error: normalizeAuthError(error) };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) {
       return {
-        error: new Error("Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to use authentication."),
+        error: supabaseConfigError(),
         role: null,
       };
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    const resolvedRole = data.user ? await fetchRole(data.user) : null;
-    return { error, role: resolvedRole };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const resolvedRole = data.user ? await fetchRole(data.user) : null;
+      return { error: normalizeAuthError(error), role: resolvedRole };
+    } catch (error) {
+      return { error: normalizeAuthError(error), role: null };
+    }
   };
 
   const signOut = async () => {

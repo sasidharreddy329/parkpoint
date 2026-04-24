@@ -28,7 +28,7 @@ const App = () => (
       <Router>
         {showConfigNotice && (
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm text-amber-900">
-            Supabase is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in your `.env` file to enable login, bookings, and live data.
+            Supabase is not configured correctly. Add valid `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` values in `.env` or your deployment environment to enable login, bookings, and live data.
           </div>
         )}
         <AuthProvider>
